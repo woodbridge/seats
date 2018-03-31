@@ -20,6 +20,7 @@ from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, flash, session
 from psycopg2 import IntegrityError
+import bcrypt
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -155,11 +156,15 @@ def signup_form():
 @app.route('/signup', methods=['POST'])
 def create_account():
   print("---> making an account")
+
+  pass_bytes = bytes(request.form['password'])
+  pass_hash = bcrypt.hashpw(pass_bytes, bcrypt.gensalt(14))
+
   query = "INSERT into users(name, email, password_hash) VALUES (%s, %s, %s) RETURNING user_id"
   trans = g.conn.begin()
 
   try:
-    r = g.conn.execute(query, request.form['name'], request.form['email'], request.form['password'])
+    r = g.conn.execute(query, request.form['name'], request.form['email'], pass_hash)
 
     user_id = r.fetchone()[0]
 
