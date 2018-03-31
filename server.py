@@ -17,11 +17,13 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response
+from flask import Flask, request, render_template, g, redirect, Response, flash
+from psycopg2 import IntegrityError
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
+app.secret_key = 'secret'
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
@@ -133,12 +135,22 @@ def signup_form():
 
 @app.route('/signup', methods=['POST'])
 def create_account():
-  return 'it worked'
+  print("---> making an account")
+  query = "INSERT into users(name, email, password_hash) VALUES (%s, %s, %s)"
+  trans = g.conn.begin()
+
+  try:
+    g.conn.execute(query, request.form['name'], request.form['email'], request.form['password'])
+    return redirect('/')
+    trans.commit()
+  except:    
+    trans.rollback()
+    flash('Failed to create account, please make sure your email is unique.')
+    return redirect('/signup')
 
 
 @app.route('/library/<name>')
 def view_library(name):
-  print(name)
   return render_template("another.html", name=name)
 
 
@@ -180,7 +192,7 @@ if __name__ == "__main__":
 
     HOST, PORT = host, port
     print "running on %s:%d" % (HOST, PORT)
-    app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
+    app.run(host=HOST, port=PORT, debug=True, threaded=threaded)
 
 
   run()
