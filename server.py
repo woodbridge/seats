@@ -22,6 +22,9 @@ from flask import Flask, request, render_template, g, redirect, Response
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
+
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+
 DATABASEURI = "postgresql://jrw2190:2233@35.227.79.146/proj1part2"
 
 engine = create_engine(DATABASEURI)
@@ -150,6 +153,7 @@ if __name__ == "__main__":
   @click.option('--threaded', is_flag=True)
   @click.argument('HOST', default='0.0.0.0')
   @click.argument('PORT', default=8111, type=int)
+
   def run(debug, threaded, host, port):
     """
     This function handles command line parameters.
