@@ -103,7 +103,6 @@ def login_required(fn):
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
 @app.route('/')
-@login_required
 def index():
   cursor = g.conn.execute("SELECT name FROM library")
   libraries = []
@@ -215,6 +214,10 @@ def check_login():
       return redirect('/login')
 
 
+@app.route('/logout')
+def logout():
+  session['user_id'] = None
+  return redirect('/')
 
 if __name__ == "__main__":
   import click
