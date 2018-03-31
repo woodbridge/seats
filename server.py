@@ -15,9 +15,10 @@ Read about it online.
 """
 
 import os
+from functools import wraps
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response, flash
+from flask import Flask, request, render_template, g, redirect, Response, flash, session
 from psycopg2 import IntegrityError
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -44,19 +45,25 @@ engine = create_engine(DATABASEURI)
 
 @app.before_request
 def before_request():
-  """
-  This function is run at the beginning of every web request 
-  (every time you enter an address in the web browser).
-  We use it to setup a database connection that can be used throughout the request.
-
-  The variable g is globally accessible.
-  """
   try:
     g.conn = engine.connect()
   except:
     print "uh oh, problem connecting to database"
     import traceback; traceback.print_exc()
     g.conn = None
+
+  user_id = session.get('user_id')
+
+  if user_id:
+    r = g.conn.execute('SELECT * FROM users WHERE user_id = (%s)', user_id)    
+    user = r.fetchone()
+
+    if user:
+      g.user = user
+  else:
+      g.user = None
+
+
 
 @app.teardown_request
 def teardown_request(exception):
@@ -68,6 +75,17 @@ def teardown_request(exception):
     g.conn.close()
   except Exception as e:
     pass
+
+def login_required(fn):
+  @wraps(fn)
+  def wrapper(*args, **kwargs):
+    if g.user is None:
+      flash('login required')
+      return redirect('/login')
+    else:
+      return fn(*args, **kwargs)
+
+  return wrapper
 
 
 #
@@ -84,6 +102,7 @@ def teardown_request(exception):
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
 @app.route('/')
+@login_required
 def index():
   cursor = g.conn.execute("SELECT name FROM library")
   libraries = []
@@ -117,7 +136,7 @@ def index():
   #     <div>{{n}}</div>
   #     {% endfor %}
   #
-  context = dict(data = libraries)
+  context = dict(data = libraries, user = g.user)
 
 
   #
@@ -136,15 +155,22 @@ def signup_form():
 @app.route('/signup', methods=['POST'])
 def create_account():
   print("---> making an account")
-  query = "INSERT into users(name, email, password_hash) VALUES (%s, %s, %s)"
+  query = "INSERT into users(name, email, password_hash) VALUES (%s, %s, %s) RETURNING user_id"
   trans = g.conn.begin()
 
   try:
-    g.conn.execute(query, request.form['name'], request.form['email'], request.form['password'])
-    return redirect('/')
+    r = g.conn.execute(query, request.form['name'], request.form['email'], request.form['password'])
+
+    user_id = r.fetchone()[0]
+
+    print('---> created new user with id ' + str(user_id))
+
+    session['user_id'] = user_id
     trans.commit()
-  except:    
-    trans.rollback()
+    return redirect('/')
+  except Exception as e:
+    print(e)
+    trans.rollback()    
     flash('Failed to create account, please make sure your email is unique.')
     return redirect('/signup')
 
@@ -164,8 +190,12 @@ def add():
 
 @app.route('/login')
 def login():
-    abort(401)
-    this_is_never_executed()
+  return 'login'
+
+@app.route('/login', methods=['POST'])
+def check_login():
+  # TODO: Allow users to login
+  pass
 
 
 if __name__ == "__main__":
