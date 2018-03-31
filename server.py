@@ -195,12 +195,25 @@ def add():
 
 @app.route('/login')
 def login():
-  return 'login'
+  return render_template('login.html')
 
 @app.route('/login', methods=['POST'])
 def check_login():
-  # TODO: Allow users to login
-  pass
+  r = g.conn.execute('SELECT * FROM users WHERE email = %s', request.form['email'])
+  user = r.fetchone()
+
+  if not user:    
+    flash('bad email')
+    return redirect('/login')
+  else:
+    if bcrypt.checkpw(bytes(request.form['password']), bytes(user[2])):
+      session['user_id'] = user[0]
+      flash('logged in!')
+      return redirect('/')
+    else:
+      flash('bad password')
+      return redirect('/login')
+
 
 
 if __name__ == "__main__":
