@@ -125,7 +125,18 @@ def index():
   return render_template("index.html", **context)
 
 
-@app.route('/<name>')
+## User Flow
+
+@app.route('/signup')
+def signup_form():
+  return render_template("signup.html")
+
+@app.route('/signup', methods=['POST'])
+def create_account():
+  return 'it worked'
+
+
+@app.route('/library/<name>')
 def view_library(name):
   print(name)
   return render_template("another.html", name=name)
