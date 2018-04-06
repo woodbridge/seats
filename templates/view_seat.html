@@ -4,29 +4,64 @@
 
   <h1>Seat #{{ seat['id'] }}</h1>
 
-  {% if offering %}
-    <h2>Someone has this seat.</h2>
+  <div id='offering'>
+    
+    {% if offering %}
+      <h2>Someone has this seat.</h2>
 
-    <p>User: {{owner ['email'] }}</p>
+      <p>User: {{owner ['email'] }}</p>
 
-    <p>Their price: {{ offering['price'] }}</p>
+      <p>Their price: {{ offering['price'] }}</p>
 
-    <button>Get This Seat</button>
+      <button>Get This Seat</button>
 
-  {% else %}
+    {% else %}
 
-    <form method='post' action='/claim'>      
-      <h2>This seat is available. Claim it!</h2>
-      <div class='form-group'>
-        <label>What do you want for it</label>
-        <textarea name='price' class='form-control'  placeholder="JJ's Swipe, $10, a playlist"></textarea>
-      </div>
+      <form method='post' action='/claim'>      
+        <h2>This seat is available. Claim it!</h2>
+        <div class='form-group'>
+          <label>What do you want for it</label>
+          <textarea name='price' class='form-control'  placeholder="JJ's Swipe, $10, a playlist"></textarea>
+        </div>
+
+        <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
+        <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>      
+    
+        <button>Claim</button>
+      </form>
+
+    {% endif %}
+  </div>
+
+  <h3>Comments</h3>
+
+  {% for c in comments %}
+    <div class='comment'>
+      <p>{{ c['email'] }} &mdash; {{ c['text'] }}</p>
+    </div>
+  {% endfor %}
+
+
+  <form method='post' action='/post_comment'>
+    <div class='form-group'>
+      <h4>Leave Comment</h4>
+
+      <textarea name='text' class="form-control"></textarea>      
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul class=flashes>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+
+      <button class="btn btn-primary" style='margin-top: 20px;'>Post Comment</button>
 
       <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
       <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>      
-  
-      <button>Claim</button>
-    </form>
-
-  {% endif %}
+    </div>
+  </form>
 {% endblock %}

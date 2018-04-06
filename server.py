@@ -247,7 +247,53 @@ def view_seat(library_name, seat_id):
   else:
     owner = None
 
-  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner)
+
+  r = g.conn.execute("SELECT c.text, u.email FROM comments c, users u WHERE c.user_id = u.user_id AND library_name = (%s) AND seat_id = (%s)", library_name, seat_id)
+
+  comments = []
+
+  for row in r:
+
+    c = {
+      'text': row[0],
+      'email': row[1]
+    }
+
+    comments.append(c)
+
+
+  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments)
+
+@app.route('/post_comment', methods=['POST'])
+@login_required
+def post_comment():
+  seat_id = request.form['seat_id']
+  library_name = request.form['library_name']
+  comment_text = request.form['text']
+  user_id = g.user[0]
+
+
+  if not comment_text or len(comment_text) == 0:
+    flash('need to write a comment')
+    return redirect("/library/{0}/{1}".format(library_name.lower(), seat_id))
+
+  query = "INSERT INTO comments(library_name, user_id, seat_id, text) VALUES (%s, %s, %s, %s) RETURNING comment_id"
+
+  trans = g.conn.begin()
+
+  try:
+    r = g.conn.execute(query, library_name, user_id, seat_id, comment_text)
+
+    comment_id = r.fetchone()[0]
+
+    trans.commit()
+    return redirect("/library/{0}/{1}".format(library_name.lower(), seat_id))
+  except Exception as e:
+    print(e)
+    trans.rollback()    
+    return 'error'
+
+
 
 @app.route('/claim', methods=['POST'])
 @login_required
