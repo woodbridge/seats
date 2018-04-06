@@ -6,7 +6,7 @@
   <ul>
     {% for s in seats %}
     <div style='background-color: #eee; width: 200px; margin-bottom: 10px; padding: 20px;'>
-      <h2 style='text-align: center;'>{{ s[0] }}</h2>
+      <h2 style='text-align: center;'><a href='/library/{{ s[1].lower() }}/{{ s[0] }}'>{{ s[0] }}</a></h2>
     </div>
     {% endfor %}    
   </ul>
