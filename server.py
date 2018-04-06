@@ -14,7 +14,7 @@ A debugger such as "pdb" may be helpful for debugging.
 Read about it online.
 """
 
-import os
+import os, datetime
 from functools import wraps
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
@@ -172,6 +172,7 @@ def create_account():
   pass_hash = bcrypt.hashpw(pass_bytes, bcrypt.gensalt(14))
 
   query = "INSERT into users(name, email, password_hash) VALUES (%s, %s, %s) RETURNING user_id"
+
   trans = g.conn.begin()
 
   try:
@@ -210,7 +211,10 @@ def view_seat(library_name, seat_id):
   library_name = LIBRARY_NAMES[library_name]
 
   r = g.conn.execute("SELECT * from seats WHERE library_name = (%s) AND seat_id = (%s)", library_name, seat_id)
+
   seat_attrs = r.fetchone()  
+
+  if not seat_attrs: return "fuck"
 
   seat = {
     'id': seat_attrs[0],
@@ -218,14 +222,63 @@ def view_seat(library_name, seat_id):
   }
 
   r = g.conn.execute("SELECT * from seat_offerings WHERE library_name = (%s) AND seat_id = (%s)", library_name, seat_id)
-  offering = r.fetchone()
+  offering_attrs = r.fetchone()
+  if offering_attrs:
+    offering = {
+      'offering_id': offering_attrs[0],
+      'price': offering_attrs[1],
+      'date': offering_attrs[2],
+      'seat_id': offering_attrs[3],
+      'user_id': offering_attrs[4],
+      'library_name': offering_attrs[5]
+    }
+  else:
+    offering = None
 
-  return render_template('view_seat.html', seat=seat, offering=offering)
+  if offering:
+    r = g.conn.execute("SELECT * from users WHERE user_id = (%s)", offering['user_id'])
+    owner_attrs = r.fetchone()
 
-@app.route('/claim')
+    owner = {
+      'user_id': owner_attrs[0],
+      'email': owner_attrs[1],
+      'name': owner_attrs[2]
+    }
+  else:
+    owner = None
+
+  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner)
+
+@app.route('/claim', methods=['POST'])
 @login_required
 def claim_seat():
-  pass
+  seat_id = request.form['seat_id']
+  library_name = request.form['library_name']
+  price = request.form['price']
+  date = datetime.datetime.utcnow()
+  user_id = g.user[0] # TODO: convert to dictionary
+
+  query = "INSERT INTO seat_offerings(price, offering_date, seat_id, user_id, library_name) VALUES (%s, %s, %s, %s, %s) RETURNING seat_offering_id"
+
+  trans = g.conn.begin()
+
+  try:
+    r = g.conn.execute(query, price, date, seat_id, user_id, library_name)
+
+    id = r.fetchone()[0]
+
+    print('---> created new seat_offering with id ' + str(id))
+
+    trans.commit()
+    return redirect("/library/{0}/{1}".format(library_name.lower(), seat_id))
+  except Exception as e:
+    print(e)
+    trans.rollback()
+    return 'failure'
+
+
+
+  return str(seat_id) + ' ' + library_name
 
 @app.route('/login')
 def login():

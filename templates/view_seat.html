@@ -1,15 +1,25 @@
 {% extends "layout.html" %}
 
 {% block content %}
+
+  <h1>Seat #{{ seat['id'] }}</h1>
+
   {% if offering %}
     <h2>Someone has this seat.</h2>
+
+    <p>User: {{owner ['email'] }}</p>
+
+    <p>Their price: {{ offering['price'] }}</p>
+
+    <button>Get This Seat</button>
+
   {% else %}
 
-    <form method='post' action='/claim'>
+    <form method='post' action='/claim'>      
       <h2>This seat is available. Claim it!</h2>
       <div class='form-group'>
         <label>What do you want for it</label>
-        <textarea class='form-control'  placeholder="JJ's Swipe, $10, a playlist"></textarea>
+        <textarea name='price' class='form-control'  placeholder="JJ's Swipe, $10, a playlist"></textarea>
       </div>
 
       <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
