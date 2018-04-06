@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  {% if offering %}
+    <h2>Someone has this seat.</h2>
+  {% else %}
+
+    <form method='post' action='/claim'>
+      <h2>This seat is available. Claim it!</h2>
+      <div class='form-group'>
+        <label>What do you want for it</label>
+        <textarea class='form-control'  placeholder="JJ's Swipe, $10, a playlist"></textarea>
+      </div>
+
+      <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
+      <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>      
+  
+      <button>Claim</button>
+    </form>
+
+  {% endif %}
+{% endblock %}

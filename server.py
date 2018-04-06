@@ -31,6 +31,18 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 DATABASEURI = "postgresql://jrw2190:2233@35.227.79.146/proj1part2"
 
+LIBRARY_NAMES = {
+    'butler': 'Butler',
+    'lehman': 'Lehman',
+    'avery': 'Avery',
+    'noco': 'NOCO',
+    'law': 'Law',
+    'math': 'Math',
+    'dodge': 'Dodge',
+    'kent': 'Kent'
+
+  }
+
 engine = create_engine(DATABASEURI)
 
 #
@@ -181,16 +193,39 @@ def create_account():
 
 @app.route('/library/<name>')
 def view_library(name):
-  return render_template("another.html", name=name)
+  library_name = LIBRARY_NAMES[name]
 
+  r = g.conn.execute('SELECT * FROM seats where library_name = (%s)', library_name)
 
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
-  return redirect('/')
+  seats = []
+  for row in r:
+    seats.append(r.fetchone())
 
+  r.close()
+
+  return render_template("another.html", name=name, seats=seats)
+
+@app.route('/library/<library_name>/<seat_id>')
+def view_seat(library_name, seat_id):
+  library_name = LIBRARY_NAMES[library_name]
+
+  r = g.conn.execute("SELECT * from seats WHERE library_name = (%s) AND seat_id = (%s)", library_name, seat_id)
+  seat_attrs = r.fetchone()  
+
+  seat = {
+    'id': seat_attrs[0],
+    'library': seat_attrs[1]
+  }
+
+  r = g.conn.execute("SELECT * from seat_offerings WHERE library_name = (%s) AND seat_id = (%s)", library_name, seat_id)
+  offering = r.fetchone()
+
+  return render_template('view_seat.html', seat=seat, offering=offering)
+
+@app.route('/claim')
+@login_required
+def claim_seat():
+  pass
 
 @app.route('/login')
 def login():
