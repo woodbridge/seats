@@ -5,19 +5,27 @@
   <h1>Seat #{{ seat['id'] }}</h1>
 
   <div id='offering'>
-    
+
     {% if offering %}
-      <h2>Someone has this seat.</h2>
+      {% if owner['user_id'] == login_user%}
+      <form method = 'post' action='/leave'>
+        <input type="hidden" name="offering_id" value='{{ offering }}'>
+        <button>Leaving your seat?</button>
+      </form>
 
-      <p>User: {{owner ['email'] }}</p>
+      {% else %}
+        <h2>Someone has this seat.</h2>
 
-      <p>Their price: {{ offering['price'] }}</p>
+        <p>User: {{owner ['email'] }}</p>
 
-      <button>Get This Seat</button>
+        <p>Their price: {{ offering['price'] }}</p>
+
+        <button>Get This Seat</button>
+      {% endif %}
 
     {% else %}
 
-      <form method='post' action='/claim'>      
+      <form method='post' action='/claim'>
         <h2>This seat is available. Claim it!</h2>
         <div class='form-group'>
           <label>What do you want for it</label>
@@ -25,8 +33,8 @@
         </div>
 
         <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
-        <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>      
-    
+        <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>
+
         <button>Claim</button>
       </form>
 
@@ -46,7 +54,7 @@
     <div class='form-group'>
       <h4>Leave Comment</h4>
 
-      <textarea name='text' class="form-control"></textarea>      
+      <textarea name='text' class="form-control"></textarea>
 
       {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -61,7 +69,7 @@
       <button class="btn btn-primary" style='margin-top: 20px;'>Post Comment</button>
 
       <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
-      <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>      
+      <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>
     </div>
   </form>
 {% endblock %}
