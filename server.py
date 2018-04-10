@@ -261,8 +261,12 @@ def view_seat(library_name, seat_id):
 
     comments.append(c)
 
+  if g.user:
+    session_id = g.user[0]
+  else:
+    session_id = None
 
-  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments, login_user = session['user_id'])
+  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments, login_user=session_id)
 
 @app.route('/post_comment', methods=['POST'])
 @login_required
