@@ -258,9 +258,12 @@ def view_seat(library_name, seat_id):
   else:
     session_id = None
 
-  r = g.conn.execute("SELECT * FROM ads WHERE seat_offering_id = (%s)", offering['offering_id'])
+  if offering:
+    r = g.conn.execute("SELECT * FROM ads WHERE seat_offering_id = (%s)", offering['offering_id'])
 
-  ad = r.fetchone()
+    ad = r.fetchone()
+  else: 
+    ad = None
 
   return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments, login_user=session_id, ad=ad)
 
