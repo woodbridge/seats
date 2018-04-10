@@ -126,10 +126,7 @@ def index():
 
   r = g.conn.execute("SELECT a.text, so.library_name, so.seat_id FROM ads a, seat_offerings so WHERE so.seat_offering_id = a.seat_offering_id")
 
-  ads = []
-  for row in r:
-    # TODO: We could parse these from tuples into dicts with named attribute keys but fuck it.
-    ads.append(r.fetchone())
+  ads = r.fetchall()
 
   r.close()
 
