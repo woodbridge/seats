@@ -9,7 +9,9 @@
     {% if offering %}
       {% if owner['user_id'] == login_user%}
       <form method = 'post' action='/leave'>
-        <input type="hidden" name="offering_id" value='{{ offering }}'>
+        <input type="hidden" name="offering_id" value='{{ offering["offering_id"] }}'>
+        <input type="hidden" name="library_name" value='{{ offering["library_name"] }}'>
+        <input type="hidden" name="seat_id" value='{{ offering["seat_id"] }}'>
         <button>Leaving your seat?</button>
       </form>
 

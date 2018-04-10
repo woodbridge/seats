@@ -283,13 +283,16 @@ def post_comment():
 
 @app.route('/leave', methods=['POST'])
 def leave():
-    offering  = request.form['offering']
-    print offering['offering_id']
-    query = "DELETE FROM seat_offerings WHERE offering_id = (%s) RETURNING offering_id"
+    offering_id = request.form['offering_id']
+    seat_id = request.form['seat_id']
+    library_name = request.form['library_name']
+    print offering_id
+    print library_name
+    query = "DELETE FROM seat_offerings WHERE seat_offering_id = (%s) RETURNING seat_offering_id"
     trans = g.conn.begin()
 
     try:
-        r = g.conn.execute(query, offering['offering_id'])
+        r = g.conn.execute(query, offering_id)
 
         id = r.fetchone()[0]
 
