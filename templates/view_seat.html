@@ -8,16 +8,30 @@
 
     {% if offering %}
       {% if owner['user_id'] == login_user%}
-      <h3>Post an Ad</h3>
+      {% if ad %}
+        <h2>Your Ad</h2>
+        <p>{{ ad['text'] }}</p>
 
-      <form action='/create_ad' method='post'>
-        <input type="hidden" name="offering_id" value='{{ offering["offering_id"] }}'>
-        <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
-        <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>
+        <form method='post' action='/delete_ad'>
+          <input type="hidden" name="ad_id" value='{{ ad["ad_id"] }}'>
+          <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
+          <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>
 
-        <textarea class='form-control' name='text' placeholder="What's great about this seat?"></textarea>
-        <button class='btn btn-info' style='margin-top: 20px'>Post an Ad</button>
-      </form>
+          <button class='btn btn-danger'>delete ad</button>          
+        </form>
+      {% else %}
+        <h3>Post an Ad</h3>
+
+        <form action='/create_ad' method='post'>
+          <input type="hidden" name="offering_id" value='{{ offering["offering_id"] }}'>
+          <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
+          <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>
+
+          <textarea class='form-control' name='text' placeholder="What's great about this seat?"></textarea>
+          <button class='btn btn-info' style='margin-top: 20px'>Post an Ad</button>
+        </form>
+
+      {% endif %}
 
       <hr />
 

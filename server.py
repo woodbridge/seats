@@ -250,7 +250,11 @@ def view_seat(library_name, seat_id):
   else:
     session_id = None
 
-  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments, login_user=session_id)
+  r = g.conn.execute("SELECT * FROM ads WHERE seat_offering_id = (%s)", offering['offering_id'])
+
+  ad = r.fetchone()
+
+  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments, login_user=session_id, ad=ad)
 
 @app.route('/post_comment', methods=['POST'])
 @login_required
@@ -304,7 +308,6 @@ def leave():
         print(e)
         trans.rollback()
         return 'failure'
-
 
 @app.route('/claim', methods=['POST'])
 @login_required
@@ -384,6 +387,29 @@ def create_ad():
     trans.rollback()
     # flash('Failed to create account, please make sure your email is unique.')
     # return redirect('/signup')
+    return str(e)
+
+
+@app.route('/delete_ad', methods=['POST'])
+def delete_post():
+  ad_id = request.form['ad_id']
+  library_name = request.form['library_name']
+  seat_id = request.form['seat_id']
+
+  # TODO: Should probably verify that the logged in user owns this ad.
+
+  query = "DELETE FROM ads WHERE ad_id = (%s)"
+
+  trans = g.conn.begin()
+  try:
+    r = g.conn.execute(query, ad_id)
+    print("---> deleted ad with id {0}".format(ad_id))
+    trans.commit()
+
+    return redirect("/library/{0}/{1}".format(library_name.lower(), seat_id))
+  except Exception as e:
+    trans.rollback()
+    print(e)
     return str(e)
 
 
