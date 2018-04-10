@@ -10,4 +10,26 @@
     </div>
     {% endfor %}    
   </ul>
+
+<h2>Seat Advertisements</h2>
+
+<table class='table'>
+  <tbody>
+    <thead>
+      <th>Library</th>
+      <th>Seat</th>
+      <th>Ad</th>
+      <th>Buy Seat</th>
+    </thead>
+{% for ad in ads %}
+    <tr>
+      <td>{{ ad['library_name'] }}</td>
+      <td>{{ ad['seat_id'] }}</td>
+      <td>{{ ad['text'].strip() }}</td>
+      <td><a href="/library/{{ ad['library_name'].lower() }}/{{ ad['seat_id'] }}">buy</a></td>
+    </tr>    
+{% endfor %}
+  </tbody>
+</table>
+
 {% endblock %}

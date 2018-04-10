@@ -118,8 +118,10 @@ def login_required(fn):
 def index():
   cursor = g.conn.execute("SELECT name FROM library")
   libraries = []
+
   for result in cursor:
     libraries.append(result['name'].lower())  # can also be accessed using result[0]
+
   cursor.close()
 
   #
@@ -204,7 +206,11 @@ def view_library(name):
 
   r.close()
 
-  return render_template("another.html", name=name, seats=seats)
+  r = g.conn.execute("SELECT a.text, so.library_name, so.seat_id FROM ads a, seat_offerings so WHERE so.seat_offering_id = a.seat_offering_id AND so.library_name = (%s)", library_name)
+
+  ads = r.fetchall()
+
+  return render_template("another.html", name=name, seats=seats, ads=ads)
 
 @app.route('/library/<library_name>/<seat_id>')
 def view_seat(library_name, seat_id):
