@@ -171,6 +171,10 @@ def create_account():
     flash('Failed to create account, please make sure your email is unique.')
     return redirect('/signup')
 
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
 @app.route('/library/<name>')
 def view_library(name):
@@ -181,6 +185,10 @@ def view_library(name):
   seats = []
   for row in r:
     seats.append(r.fetchone())
+
+  seats = list(chunks(seats, 6))
+
+  print(seats)
 
   r.close()
 
@@ -250,7 +258,14 @@ def view_seat(library_name, seat_id):
   else:
     session_id = None
 
-  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments, login_user=session_id)
+  if offering:
+    r = g.conn.execute("SELECT * FROM ads WHERE seat_offering_id = (%s)", offering['offering_id'])
+
+    ad = r.fetchone()
+  else:
+    ad = None
+
+  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments, login_user=session_id, ad=ad)
 
 @app.route('/post_comment', methods=['POST'])
 @login_required
@@ -363,6 +378,57 @@ def check_login():
     else:
       flash('bad password')
       return redirect('/login')
+
+
+@app.route('/create_ad', methods=['POST'])
+def create_ad():
+  text = request.form['text']
+  library_name = request.form['library_name']
+  seat_offering_id = request.form['offering_id']
+  date = datetime.datetime.utcnow()
+
+  query = "INSERT INTO ads(seat_offering_id, date, text) VALUES (%s, %s, %s) RETURNING ad_id"
+
+  trans = g.conn.begin()
+
+  try:
+    r = g.conn.execute(query, seat_offering_id, date, text)
+
+    ad_id = r.fetchone()[0]
+
+    print('---> created new ad with id ' + str(ad_id))
+
+    trans.commit()
+    return redirect("/library/{0}".format(library_name.lower()))
+  except Exception as e:
+    print(e)
+    trans.rollback()
+    # flash('Failed to create account, please make sure your email is unique.')
+    # return redirect('/signup')
+    return str(e)
+
+
+@app.route('/delete_ad', methods=['POST'])
+def delete_post():
+  ad_id = request.form['ad_id']
+  library_name = request.form['library_name']
+  seat_id = request.form['seat_id']
+
+  # TODO: Should probably verify that the logged in user owns this ad.
+
+  query = "DELETE FROM ads WHERE ad_id = (%s)"
+
+  trans = g.conn.begin()
+  try:
+    r = g.conn.execute(query, ad_id)
+    print("---> deleted ad with id {0}".format(ad_id))
+    trans.commit()
+
+    return redirect("/library/{0}/{1}".format(library_name.lower(), seat_id))
+  except Exception as e:
+    trans.rollback()
+    print(e)
+    return str(e)
 
 
 @app.route('/logout')

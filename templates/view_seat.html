@@ -8,14 +8,40 @@
 
     {% if offering %}
       {% if owner['user_id'] == login_user%}
-      <form method = 'post' action='/set_price'>
-        <p> Your current price: {{ offering['price'] }}</p>
-        <label>Want to set a price?</label>
-        <input name='price' class='form-control'  placeholder="JJ's Swipe, $10, a playlist"/>
+      {% if ad %}
+        <h2>Your Ad</h2>
+        <p>{{ ad['text'] }}</p>
+
+        <form method='post' action='/delete_ad'>
+          <input type="hidden" name="ad_id" value='{{ ad["ad_id"] }}'>
+          <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
+          <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>
+
+          <button class='btn btn-danger'>delete ad</button>
+        </form>
+      {% else %}
+        <h3>Post an Ad</h3>
+
+        <form action='/create_ad' method='post'>
+          <input type="hidden" name="offering_id" value='{{ offering["offering_id"] }}'>
+          <input type="hidden" name="library_name" value='{{ seat["library"] }}'>
+          <input type="hidden" name="seat_id" value='{{ seat["id"] }}'>
+
+          <textarea class='form-control' name='text' placeholder="What's great about this seat?"></textarea>
+          <button class='btn btn-info' style='margin-top: 20px'>Post an Ad</button>
+        </form>
+
+      {% endif %}
+
+      <hr />
+
+      <h3>Leave your seat</h3>
+
+      <form method = 'post' action='/leave'>
         <input type="hidden" name="offering_id" value='{{ offering["offering_id"] }}'>
         <input type="hidden" name="library_name" value='{{ offering["library_name"] }}'>
         <input type="hidden" name="seat_id" value='{{ offering["seat_id"] }}'>
-        <button>Change price</button>
+        <button style='margin-top: 20px;' class='btn btn-warning'>Leaving your seat?</button>
       </form>
 
       {% else %}
