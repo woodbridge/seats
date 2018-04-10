@@ -68,7 +68,7 @@ def before_request():
   user_id = session.get('user_id')
 
   if user_id:
-    r = g.conn.execute('SELECT * FROM users WHERE user_id = (%s)', user_id)    
+    r = g.conn.execute('SELECT * FROM users WHERE user_id = (%s)', user_id)
     user = r.fetchone()
 
     if user:
@@ -110,7 +110,7 @@ def login_required(fn):
 #       @app.route("/foobar/", methods=["POST", "GET"])
 #
 # PROTIP: (the trailing / in the path is important)
-# 
+#
 # see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
@@ -167,7 +167,7 @@ def create_account():
     return redirect('/')
   except Exception as e:
     print(e)
-    trans.rollback()    
+    trans.rollback()
     flash('Failed to create account, please make sure your email is unique.')
     return redirect('/signup')
 
@@ -196,7 +196,7 @@ def view_seat(library_name, seat_id):
 
   r = g.conn.execute("SELECT * from seats WHERE library_name = (%s) AND seat_id = (%s)", library_name, seat_id)
 
-  seat_attrs = r.fetchone()  
+  seat_attrs = r.fetchone()
 
   if not seat_attrs: return "fuck"
 
@@ -245,8 +245,12 @@ def view_seat(library_name, seat_id):
 
     comments.append(c)
 
+  if g.user:
+    session_id = g.user[0]
+  else:
+    session_id = None
 
-  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments)
+  return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments, login_user=session_id)
 
 @app.route('/post_comment', methods=['POST'])
 @login_required
@@ -274,9 +278,29 @@ def post_comment():
     return redirect("/library/{0}/{1}".format(library_name.lower(), seat_id))
   except Exception as e:
     print(e)
-    trans.rollback()    
+    trans.rollback()
     return 'error'
 
+@app.route('/leave', methods=['POST'])
+def leave():
+    offering  = request.form['offering']
+    print offering['offering_id']
+    query = "DELETE FROM seat_offerings WHERE offering_id = (%s) RETURNING offering_id"
+    trans = g.conn.begin()
+
+    try:
+        r = g.conn.execute(query, offering['offering_id'])
+
+        id = r.fetchone()[0]
+
+        print('---> removed seat offering' + str(id))
+
+        trans.commit()
+        return redirect('/library/{0}/{1}'.format(library_name.lower(), seat_id))
+    except Exception as e:
+        print(e)
+        trans.rollback()
+        return 'failure'
 
 
 @app.route('/claim', methods=['POST'])
@@ -319,7 +343,7 @@ def check_login():
   r = g.conn.execute('SELECT * FROM users WHERE email = %s', request.form['email'])
   user = r.fetchone()
 
-  if not user:    
+  if not user:
     flash('bad email')
     return redirect('/login')
   else:
