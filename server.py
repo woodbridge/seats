@@ -359,6 +359,34 @@ def check_login():
       return redirect('/login')
 
 
+@app.route('/create_ad', methods=['POST'])
+def create_ad():
+  text = request.form['text']
+  library_name = request.form['library_name']
+  seat_offering_id = request.form['offering_id']
+  date = datetime.datetime.utcnow()
+
+  query = "INSERT INTO ads(seat_offering_id, date, text) VALUES (%s, %s, %s) RETURNING ad_id"
+
+  trans = g.conn.begin()
+
+  try:
+    r = g.conn.execute(query, seat_offering_id, date, text)
+
+    ad_id = r.fetchone()[0]
+
+    print('---> created new ad with id ' + str(ad_id))
+
+    trans.commit()
+    return redirect("/library/{0}".format(library_name.lower()))
+  except Exception as e:
+    print(e)
+    trans.rollback()
+    # flash('Failed to create account, please make sure your email is unique.')
+    # return redirect('/signup')
+    return str(e)
+
+
 @app.route('/logout')
 def logout():
   session['user_id'] = None
