@@ -8,11 +8,14 @@
 
     {% if offering %}
       {% if owner['user_id'] == login_user%}
-      <form method = 'post' action='/leave'>
+      <form method = 'post' action='/set_price'>
+        <p> Your current price: {{ offering['price'] }}</p>
+        <label>Want to set a price?</label>
+        <input name='price' class='form-control'  placeholder="JJ's Swipe, $10, a playlist"/>
         <input type="hidden" name="offering_id" value='{{ offering["offering_id"] }}'>
         <input type="hidden" name="library_name" value='{{ offering["library_name"] }}'>
         <input type="hidden" name="seat_id" value='{{ offering["seat_id"] }}'>
-        <button>Leaving your seat?</button>
+        <button>Change price</button>
       </form>
 
       {% else %}

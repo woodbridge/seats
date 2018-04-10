@@ -124,7 +124,7 @@ def index():
 
   cursor.close()
 
-  r = g.conn.execute("SELECT a.text, so.library_name, so.seat_id FROM ads a, seat_offerings so WHERE so.seat_offering_id = a.seat_offering_id")  
+  r = g.conn.execute("SELECT a.text, so.library_name, so.seat_id FROM ads a, seat_offerings so WHERE so.seat_offering_id = a.seat_offering_id")
 
   ads = []
   for row in r:
@@ -134,7 +134,7 @@ def index():
   r.close()
 
   context = dict(data = libraries, user = g.user, ads=ads)
-
+  print 'hi'
   return render_template("index.html", **context)
 
 
@@ -305,6 +305,12 @@ def leave():
         trans.rollback()
         return 'failure'
 
+@app.route('/set_price', methods=['POST'])
+def set_price():
+    offering_id = request.form['offering_id']
+    seat_id = request.form['seat_id']
+    library_name = request.form['library_name']
+    new_price = request.form['price']
 
 @app.route('/claim', methods=['POST'])
 @login_required
