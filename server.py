@@ -171,6 +171,10 @@ def create_account():
     flash('Failed to create account, please make sure your email is unique.')
     return redirect('/signup')
 
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
 @app.route('/library/<name>')
 def view_library(name):
@@ -181,6 +185,10 @@ def view_library(name):
   seats = []
   for row in r:
     seats.append(r.fetchone())
+
+  seats = list(chunks(seats, 6))
+
+  print(seats)
 
   r.close()
 
