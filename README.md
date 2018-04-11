@@ -32,7 +32,4 @@ The index page uses a interesting query to get data from both the ads table and 
 The index page uses this to display a list of advertisements and the seats they are advertising for on the home page.
 
 We think it's interesting because it demonstrates gathering the exact data we need 
-from multiple tables in an elegant way.
-
-
-
+from multiple tables using a concise, more complicate query.
