@@ -179,10 +179,8 @@ def view_library(name):
 
   r = g.conn.execute('SELECT * FROM seats where library_name = (%s)', library_name)
 
-  seats = []
-  for row in r:
-    seats.append(r.fetchone())
-
+  seats = r.fetchall()
+  
   seats = list(chunks(seats, 6))
 
   print(seats)
