@@ -322,7 +322,25 @@ def set_price():
     offering_id = request.form['offering_id']
     seat_id = request.form['seat_id']
     library_name = request.form['library_name']
-    new_price = request.form['price']
+    price = request.form['price']
+
+    query = "UPDATE seat_offerings SET price = (%s) WHERE seat_offering_id = (%s) RETURNING seat_offering_id"
+
+    trans = g.conn.begin()
+
+    try:
+        r = g.conn.execute(query, price, offering_id)
+
+        id = r.fetchone()[0]
+
+        print('---> update price for seat offering' + str(id))
+
+        trans.commit()
+        return redirect('/library/{0}/{1}'.format(library_name.lower(), seat_id))
+    except Exception as e:
+        print(e)
+        trans.rollback()
+        return 'failure'   
 
 @app.route('/claim', methods=['POST'])
 @login_required
