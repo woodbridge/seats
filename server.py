@@ -124,14 +124,14 @@ def index():
 
   cursor.close()
 
-  r = g.conn.execute("SELECT a.text, so.library_name, so.seat_id FROM ads a, seat_offerings so WHERE so.seat_offering_id = a.seat_offering_id")  
+  r = g.conn.execute("SELECT a.text, so.library_name, so.seat_id FROM ads a, seat_offerings so WHERE so.seat_offering_id = a.seat_offering_id")
 
   ads = r.fetchall()
 
   r.close()
 
   context = dict(data = libraries, user = g.user, ads=ads)
-
+  print 'hi'
   return render_template("index.html", **context)
 
 
@@ -259,7 +259,7 @@ def view_seat(library_name, seat_id):
     r = g.conn.execute("SELECT * FROM ads WHERE seat_offering_id = (%s)", offering['offering_id'])
 
     ad = r.fetchone()
-  else: 
+  else:
     ad = None
 
   return render_template('view_seat.html', seat=seat, offering=offering, owner=owner, comments=comments, login_user=session_id, ad=ad)
@@ -316,6 +316,31 @@ def leave():
         print(e)
         trans.rollback()
         return 'failure'
+
+@app.route('/set_price', methods=['POST'])
+def set_price():
+    offering_id = request.form['offering_id']
+    seat_id = request.form['seat_id']
+    library_name = request.form['library_name']
+    price = request.form['price']
+
+    query = "UPDATE seat_offerings SET price = (%s) WHERE seat_offering_id = (%s) RETURNING seat_offering_id"
+
+    trans = g.conn.begin()
+
+    try:
+        r = g.conn.execute(query, price, offering_id)
+
+        id = r.fetchone()[0]
+
+        print('---> update price for seat offering' + str(id))
+
+        trans.commit()
+        return redirect('/library/{0}/{1}'.format(library_name.lower(), seat_id))
+    except Exception as e:
+        print(e)
+        trans.rollback()
+        return 'failure'   
 
 @app.route('/claim', methods=['POST'])
 @login_required
