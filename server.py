@@ -323,6 +323,7 @@ def transfer():
     seat_id = request.form['seat_id']
     price = request.form['price']
     seller_id = request.form['user']
+
     trans = g.conn.begin()
 
     try:
@@ -344,13 +345,9 @@ def transfer():
 
         print('---> user has been updated for offering' + str(id))
 
-        query =  "DELETE FROM ads WHERE seat_offering_id = (%s) RETURNING seat_offering_id"
+        query =  "DELETE FROM ads WHERE seat_offering_id = (%s)"
 
         r = g.conn.execute(query, id)
-
-        id = r.fetchone()[0]
-
-        print('---> ad has been deleted for' + str(id))
 
         trans.commit()
         return redirect('/library/{0}/{1}'.format(library_name.lower(), seat_id))
