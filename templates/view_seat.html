@@ -52,9 +52,21 @@
             <input type="hidden" name="offering_id" value='{{ offering["offering_id"] }}'>
             <input type="hidden" name="library_name" value='{{ offering["library_name"] }}'>
             <input type="hidden" name="seat_id" value='{{ offering["seat_id"] }}'>
-            <button style='margin-top: 20px;' class='btn btn-warning'>Set price</button>
+            <button style='margin-top: 20px;' class='btn btn-success'>Set price</button>
           </form>
         {% endif %}
+
+        <hr />
+        <form method = 'post' action='/transfer'>
+          <label>Who are you transferring seat to?</label>
+          <input name='new_user' class='form-control' placeholder="noname@noname.com"/>
+          <input type="hidden" name="price" value='{{ offering["price"]}}'>
+          <input type="hidden" name="user" value='{{ offering["user_id"]}}'>
+          <input type="hidden" name="offering_id" value='{{ offering["offering_id"] }}'>
+          <input type="hidden" name="library_name" value='{{ offering["library_name"] }}'>
+          <input type="hidden" name="seat_id" value='{{ offering["seat_id"] }}'>
+          <button style='margin-top: 20px;' class='btn btn-warning'>Transfer seat</button>
+        </form>
 
         <hr />
 
@@ -64,7 +76,7 @@
           <input type="hidden" name="offering_id" value='{{ offering["offering_id"] }}'>
           <input type="hidden" name="library_name" value='{{ offering["library_name"] }}'>
           <input type="hidden" name="seat_id" value='{{ offering["seat_id"] }}'>
-          <button style='margin-top: 20px;' class='btn btn-warning'>Leaving your seat?</button>
+          <button style='margin-top: 20px;' class='btn btn-danger'>Leaving your seat?</button>
         </form>
 
       {% else %}

@@ -298,8 +298,6 @@ def leave():
     offering_id = request.form['offering_id']
     seat_id = request.form['seat_id']
     library_name = request.form['library_name']
-    print offering_id
-    print library_name
     query = "DELETE FROM seat_offerings WHERE seat_offering_id = (%s) RETURNING seat_offering_id"
     trans = g.conn.begin()
 
@@ -309,6 +307,47 @@ def leave():
         id = r.fetchone()[0]
 
         print('---> removed seat offering' + str(id))
+
+        trans.commit()
+        return redirect('/library/{0}/{1}'.format(library_name.lower(), seat_id))
+    except Exception as e:
+        print(e)
+        trans.rollback()
+        return 'failure'
+
+@app.route('/transfer', methods=['POST'])
+def transfer():
+    library_name = request.form['library_name']
+    offering_id = request.form['offering_id']
+    new_user = request.form['new_user']
+    seat_id = request.form['seat_id']
+    price = request.form['price']
+    seller_id = request.form['user']
+
+    trans = g.conn.begin()
+
+    try:
+        r = g.conn.execute("SELECT u.user_id FROM users u WHERE email = (%s)", new_user)
+
+        buyer_id = r.fetchone()[0]
+
+        query = "INSERT INTO transactions(buyer_id, seller_id, seat_offering_id, date, payment) VALUES (%s, %s, %s, %s, %s) RETURNING seat_offering_id"
+
+        r = g.conn.execute(query,buyer_id,seller_id,offering_id,datetime.datetime.now(),price)
+
+        id = r.fetchone()[0]
+
+        print('---> transaction has been made for' + str(id))
+
+        query = "UPDATE seat_offerings SET user_id = (%s), price = (%s) WHERE seat_offering_id = (%s) RETURNING seat_offering_id"
+
+        r = g.conn.execute(query,buyer_id, '', id)
+
+        print('---> user has been updated for offering' + str(id))
+
+        query =  "DELETE FROM ads WHERE seat_offering_id = (%s)"
+
+        r = g.conn.execute(query, id)
 
         trans.commit()
         return redirect('/library/{0}/{1}'.format(library_name.lower(), seat_id))
@@ -340,7 +379,7 @@ def set_price():
     except Exception as e:
         print(e)
         trans.rollback()
-        return 'failure'   
+        return 'failure'
 
 @app.route('/claim', methods=['POST'])
 @login_required
